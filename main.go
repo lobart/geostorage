@@ -1,4 +1,4 @@
-package go_geoserver
+package main
 
 import (
 	"net/http"
@@ -6,6 +6,9 @@ import (
 )
 
 func main() {
+	var server server.ServerGeo
+	server.InitDBConnection()
+	defer server.CloseDBConnection()
 	http.HandleFunc("/", server.StartPage)
 	http.HandleFunc("/hello", server.Hello)
 	http.HandleFunc("/kick", server.Kick)

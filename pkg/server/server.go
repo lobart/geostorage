@@ -11,21 +11,23 @@ import (
 )
 
 
-
+type ServerGeo struct {
+	driver driverFabric.DriverDB
+}
 
 var decoder  = schema.NewDecoder()
 
-func StartPage(w http.ResponseWriter, req *http.Request) {
+func (s ServerGeo) StartPage(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "Hello!\n")
 	fmt.Fprintf(w, "Your query should be like: \n .../kick?companyName='blabla'&kickName='blabla'&longitude=10.0&latitude=10.0&speed=100.0&status='BUSY'\n")
 }
 
-func Hello(w http.ResponseWriter, req *http.Request) {
+func (s ServerGeo) Hello(w http.ResponseWriter, req *http.Request) {
 
 	fmt.Fprintf(w, "hello\n")
 }
 
-func Kick(w http.ResponseWriter, req *http.Request) {
+func  (s ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 	var kick models.KickConfig
 
 	err := decoder.Decode(&kick, req.URL.Query())
@@ -39,10 +41,17 @@ func Kick(w http.ResponseWriter, req *http.Request) {
 		log.Println("GET parameters : ", kick)
 
 	}
-	 dbCreator := db_driver_fabric.DriverCreator{}
-	 driver := dbCreator.CreateDriver()
-	 driver.Push(kick)
+	s.driver.Push(kick)
 	fmt.Fprintf(w, "Your kick is pushed!\n")
 }
 
+func (s ServerGeo) InitDBConnection() driverFabric.DriverDB {
+	driver := driverFabric.CreateDriver()
+	driver.Connect()
+	return driver
+}
+
+func (s ServerGeo) CloseDBConnection()  {
+	s.driver.Close()
+}
 
