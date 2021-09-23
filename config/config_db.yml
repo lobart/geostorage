@@ -1,0 +1,9 @@
+server:
+  port: 27017
+  host: "127.0.0.1"
+
+database:
+  type: "MongoDB"
+  dbname: "admin"
+  user: "mongoadmin"
+  pass: "secret"
