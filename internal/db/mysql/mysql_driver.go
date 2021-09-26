@@ -7,7 +7,7 @@ import (
 )
 
 type MySqlDriver struct {
-	Cfg models.DBConfig
+	Cfg *models.DBConfig
 	db  *sql.DB
 }
 

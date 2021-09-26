@@ -7,7 +7,7 @@ import (
 )
 
 type PostgreSqlDriver struct {
-	Cfg models.DBConfig
+	Cfg *models.DBConfig
 	db  *sql.DB
 }
 

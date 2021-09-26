@@ -37,15 +37,15 @@ func New() DriverDB {
 	fmt.Printf("Creating DB driver for %v", cfg.Database.Type)
 	switch cfg.Database.Type{
 	case "PostgreSQL":
-		db:= postgres.PostgreSqlDriver{Cfg: cfg}
+		db:= postgres.PostgreSqlDriver{Cfg: &cfg}
 		db.Connect()
 		return &db
 	case "MySQL":
-		db := mysql.MySqlDriver{Cfg: cfg}
+		db := mysql.MySqlDriver{Cfg: &cfg}
 		db.Connect()
 		return &db
 	case "MongoDB":
-		db:= mongo.MongoDriver{Cfg: cfg}
+		db:= mongo.MongoDriver{Cfg: &cfg}
 		db.Connect()
 		return &db
 	}

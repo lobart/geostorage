@@ -13,7 +13,7 @@ import (
 const CONNECTED = "Successfully connected to database: %v"
 
 type MongoDriver struct {
-	Cfg models.DBConfig
+	Cfg *models.DBConfig
 	db  *mongo.Database
 	Session *mongo.Client
 }
