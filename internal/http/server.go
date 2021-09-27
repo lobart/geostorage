@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/lobart/go_geoserver.git/internal/db"
 	"github.com/lobart/go_geoserver.git/internal/models"
+	"github.com/lobart/go_geoserver.git/internal/pubsub"
 	"log"
 	"net/http"
 )
@@ -13,6 +14,7 @@ import (
 
 type ServerGeo struct {
 	Driver db.DriverDB
+	Ps *pubsub.Pubsub
 }
 
 var decoder  = schema.NewDecoder()
@@ -41,7 +43,9 @@ func  (s ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 		log.Println("GET parameters : ", kick)
 
 	}
-	err = s.Driver.Push(&kick)
+
+	s.Ps.Publish("kick", kick)
+
 	stErr := fmt.Sprintf("Error %s", err)
 	if err!=nil{
 		fmt.Fprintf(w, stErr)
@@ -53,6 +57,7 @@ func (s *ServerGeo) InitDBConnection() *ServerGeo {
 	s.Driver = db.New()
 	return s
 }
+
 
 func (s *ServerGeo) CloseDBConnection() *ServerGeo {
 	s.Driver.Close()

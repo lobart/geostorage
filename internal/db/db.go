@@ -18,6 +18,8 @@ type (
 	}
 )
 
+
+
 func New() DriverDB {
 	f, err := os.Open("config/config_db.yml")
 	if err != nil {

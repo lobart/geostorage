@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/lobart/go_geoserver.git/internal/http"
+	"github.com/lobart/go_geoserver.git/internal/pubsub"
 )
 
 func main() {
-	s := http.ServerGeo{}
+	pS := pubsub.Pubsub{}.New()
+	s := http.ServerGeo{Ps : pS}
 	s.InitDBConnection()
 	defer s.CloseDBConnection()
 	s.StartServer()
