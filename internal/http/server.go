@@ -19,17 +19,17 @@ type ServerGeo struct {
 
 var decoder  = schema.NewDecoder()
 
-func (s ServerGeo) StartPage(w http.ResponseWriter, req *http.Request) {
+func (s *ServerGeo) StartPage(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "Hello!\n")
 	fmt.Fprintf(w, "Your query should be like: \n .../kick?companyName='blabla'&kickName='blabla'&longitude=10.0&latitude=10.0&speed=100.0&status='BUSY'\n")
 }
 
-func (s ServerGeo) Hello(w http.ResponseWriter, req *http.Request) {
+func (s *ServerGeo) Hello(w http.ResponseWriter, req *http.Request) {
 
 	fmt.Fprintf(w, "hello\n")
 }
 
-func  (s ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
+func  (s *ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 	var kick models.KickConfig
 
 	err := decoder.Decode(&kick, req.URL.Query())
@@ -43,8 +43,8 @@ func  (s ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 		log.Println("GET parameters : ", kick)
 
 	}
-
-	s.Ps.Publish("kick", kick)
+	fmt.Println("pubbub is ",s.Ps)
+	go s.Ps.Publish("kick", kick)
 
 	stErr := fmt.Sprintf("Error %s", err)
 	if err!=nil{
@@ -54,7 +54,7 @@ func  (s ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *ServerGeo) InitDBConnection() *ServerGeo {
-	s.Driver = db.New()
+	s.Driver = db.New(s.Ps)
 	return s
 }
 

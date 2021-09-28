@@ -14,7 +14,7 @@ type Pubsub struct {
 }
 
 func (ps Pubsub) New() *Pubsub{
-	return &Pubsub{nBuf: 10}
+	return &Pubsub{nBuf: 10, subs: map[string][]chan models.KickConfig{}}
 }
 
 
@@ -24,6 +24,7 @@ func (ps *Pubsub) Subscribe(topic string) <-chan models.KickConfig {
 
 	ch := make(chan models.KickConfig, ps.nBuf)
 	ps.subs[topic] = append(ps.subs[topic], ch)
+	fmt.Println("Success subscribing", ps.subs["kick"])
 	return ch
 }
 
@@ -34,19 +35,14 @@ func (ps *Pubsub) Publish(topic string, msg models.KickConfig) {
 	if ps.closed {
 		return
 	}
-
+	fmt.Println("Try publish message to channel ")
 	for _, ch := range ps.subs[topic] {
+		fmt.Println("In cycle")
 		go func(ch chan models.KickConfig) {
+			fmt.Println("Sending message to channel ")
 			ch <- msg
 		}(ch)
 	}
 }
 
-func (ps *Pubsub) CheckMessages(ch <-chan models.KickConfig) {
-	select {
-	case msg := <-ch:
-		s.Driver.Push(&msg)
-	default:
-		fmt.Println("No data in channel!")
-	}
-}
+
