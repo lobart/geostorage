@@ -21,7 +21,7 @@ var decoder  = schema.NewDecoder()
 
 func (s ServerGeo) New() (*ServerGeo, error){
 	var err error
-	s.Ps, err = pubsub.Pubs{}.New()
+	s.Ps, err = pubsub.New()
 	if err!=nil{
 		return &s, err
 	}
@@ -69,7 +69,7 @@ func  (s *ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 
 func (s *ServerGeo) InitDBConnection() (*ServerGeo, error) {
 	var err error
-	s.Driver, err = db.New(s.Ps)
+	s.Driver, err = db.New(s.Ps,db.Conf{})
 	return s, err
 }
 

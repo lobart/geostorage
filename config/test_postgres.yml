@@ -1,0 +1,9 @@
+server:
+  port: 3306
+  host: "127.0.0.1"
+
+database:
+  type: "PostgreSQL"
+  dbname: "admin"
+  user: "postgresadmin"
+  pass: "secret"

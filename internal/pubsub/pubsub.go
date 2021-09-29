@@ -14,8 +14,8 @@ type Pubs struct {
 	nBuf int
 }
 
-func (ps Pubs) New() (*Pubs, error){
-	ps = Pubs{nBuf: 10, Subs: map[string][]chan models.KickConfig{}}
+func New() (*Pubs, error){
+	ps := Pubs{nBuf: 10, Subs: map[string][]chan models.KickConfig{}}
 	if &ps==nil {
 		return nil, errors.New("Nil pointer")
 	}
@@ -29,7 +29,7 @@ func (ps *Pubs) Subscribe(topic string) <-chan models.KickConfig {
 
 	ch := make(chan models.KickConfig, ps.nBuf)
 	ps.Subs[topic] = append(ps.Subs[topic], ch)
-	fmt.Println("Success subscribing", ps.Subs["kick"])
+	fmt.Println("Success subscribing")
 	return ch
 }
 

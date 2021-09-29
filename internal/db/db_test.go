@@ -4,45 +4,78 @@ import (
 	"fmt"
 	"github.com/lobart/go_geoserver.git/internal/models"
 	"github.com/lobart/go_geoserver.git/internal/pubsub"
-	"sync"
 	"testing"
+	"time"
 	"errors"
 )
 
-func TestListen(t *testing.T) {
-	ps, _ := pubsub.Pubs{}.New()
-	ch := make(chan models.KickConfig, 10)
-	topic:="kick"
-	ps.Subs[topic] = append(ps.Subs[topic], ch)
-	wg:=&sync.WaitGroup{}
-	wg.Add(1)
-	for _, ch := range ps.Subs[topic] {
-		go func(wg *sync.WaitGroup, ch chan models.KickConfig) {
-			defer wg.Done()
-			fmt.Println("Sending message to channel ")
-			ch <- models.KickConfig{KickName: "test"}
-		}(wg, ch)
+func TestNew(t *testing.T) {
+	ps, _ := pubsub.New()
+	configs := []Conf{
+		Conf{path: "/home/archi/Golang_example/geostorage/config/test_mongo.yml"},
+		Conf{path: "/home/archi/Golang_example/geostorage/config/test_mysql.yml"},
+		Conf{path: "/home/archi/Golang_example/geostorage/config/test_postgres.yml"},
 	}
-	go Listen(ps, func(k *models.KickConfig) error {
-		if k.KickName != "test" {
-			return errors.New("Another test name " + k.KickName)
+	for _, c:= range(configs){
+		fmt.Println("Config is ",c)
+		_, err := New(ps, c)
+		if err!=nil{
+			t.Errorf("Error in creating DB : %v",err)
 		}
-		fmt.Println("Goodd")
-		return nil
-	})
-	wg.Wait()
-	err := error(nil)
-	if err!=nil{
-		t.Errorf("Error in Listen function %v",err)
 	}
 }
 
-func TestNew(t *testing.T) {
-	ps, _ := pubsub.Pubs{}.New()
-	_, err := New(ps)
-	if err!=nil{
-		t.Errorf("Error in creating DB : %v",err)
-	}
+type TestsForListen struct {
+	f []func()
 }
+
+
+
+func TestListen(t *testing.T) {
+	tests := []func(t *testing.T){func(t *testing.T) {
+		ps, _ := pubsub.New()
+		data := models.KickConfig{KickName: "test"}
+		go Listen(ps, func(k *models.KickConfig) error {
+			if k.KickName != "test" {
+				return errors.New("Another test name " + k.KickName)
+			}
+			fmt.Println("Goodd")
+			return nil
+		})
+		time.Sleep(1)
+		go ps.Publish("kick", data)
+		err := error(nil)
+		if err != nil {
+			t.Errorf("Error in Listen function %v", err)
+		}
+	},
+		func(t *testing.T) {
+			ps, _ := pubsub.New()
+			data := models.KickConfig{KickName: "test"}
+			go Listen(ps, func(k *models.KickConfig) error {
+				if k.KickName != "test1" {
+					return errors.New("Another test name " + k.KickName)
+				}
+				fmt.Println("Goodd")
+				return nil
+			})
+			time.Sleep(1)
+			go ps.Publish("kick", data)
+			err := error(nil)
+			if err != nil {
+				t.Errorf("Error in Listen function %v", err)
+			}
+		},
+	}
+	for _, test:=range(tests){
+		t.Run("test",test)
+	}
+
+}
+
+
+
+
+
 
 

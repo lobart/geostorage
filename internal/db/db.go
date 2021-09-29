@@ -13,6 +13,7 @@ import (
 	"sync"
 )
 
+
 type ( DriverDB interface {
 		Connect() error
 		Close() error
@@ -20,12 +21,15 @@ type ( DriverDB interface {
 	}
 )
 
+type Conf struct {
+	path string `default: "/home/archi/Golang_example/geostorage/config/config_db.yml"`
+}
+
 func Listen(ps *pubsub.Pubs, f func(k *models.KickConfig) error) error{
 	mu:=&sync.Mutex{}
 	ch := ps.Subscribe("kick")
 	var ans string
-	fmt.Println("Listening ", ch)
-	mu.Lock()
+	fmt.Println("Listening ")
 	for msg := range ch{
 		fmt.Println("Getting message from channel ")
 		err := f(&msg)
@@ -41,8 +45,8 @@ func Listen(ps *pubsub.Pubs, f func(k *models.KickConfig) error) error{
 	return nil
 }
 
-func New(ps *pubsub.Pubs) (DriverDB, error) {
-	f, err := os.Open("/home/archi/Golang_example/geostorage/config/config_db.yml")
+func  getConfig(conf Conf) (*models.DBConfig, error) {
+	f, err := os.Open(conf.path)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +60,15 @@ func New(ps *pubsub.Pubs) (DriverDB, error) {
 	} else {
 		fmt.Print(cfg.Database.Type)
 	}
+	return &cfg, err
+}
 
+func New(ps *pubsub.Pubs, conf Conf) (DriverDB, error) {
+	cfg, err := getConfig(conf)
 	fmt.Printf("Creating DB driver for %v", cfg.Database.Type)
 	switch cfg.Database.Type{
 	case "PostgreSQL":
-		db:= postgres.PostgreSqlDriver{Cfg: &cfg}
+		db:= postgres.PostgreSqlDriver{Cfg: cfg}
 		err = db.Connect()
 		if err != nil {
 			return nil, err
@@ -68,7 +76,7 @@ func New(ps *pubsub.Pubs) (DriverDB, error) {
 		go Listen(ps, db.Push)
 		return &db, nil
 	case "MySQL":
-		db := mysql.MySqlDriver{Cfg: &cfg}
+		db := mysql.MySqlDriver{Cfg: cfg}
 		err =  db.Connect()
 		if err != nil {
 			return nil, err
@@ -76,7 +84,7 @@ func New(ps *pubsub.Pubs) (DriverDB, error) {
 		go Listen(ps, db.Push)
 		return &db, nil
 	case "MongoDB":
-		db:= mongo.MongoDriver{Cfg: &cfg}
+		db:= mongo.MongoDriver{Cfg: cfg}
 		err =  db.Connect()
 		if err != nil {
 			return nil, err
