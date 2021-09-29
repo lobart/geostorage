@@ -18,7 +18,7 @@ type MongoDriver struct {
 	Session *mongo.Client
 }
 
-func (d *MongoDriver) Connect() {
+func (d *MongoDriver) Connect() error {
 	var connectOnce sync.Once
 	var err error
 	connectOnce.Do(func() {
@@ -28,17 +28,24 @@ func (d *MongoDriver) Connect() {
 		clientOptions := options.Client().ApplyURI(mongoInfo)
 
 		d.Session, err = mongo.Connect(context.TODO(), clientOptions)
-		if err != nil {
-			panic(err)
-		}
+
 		fmt.Println("\nConnection is success! ")
 		d.db = d.Session.Database(d.Cfg.Database.DBName)
+
 	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 
-func (d *MongoDriver) Close() {
-	d.Session.Disconnect(context.TODO())
+func (d *MongoDriver) Close() error{
+	err :=d.Session.Disconnect(context.TODO())
+	if err!=nil{
+		return err
+	}
+	return nil
 }
 
 

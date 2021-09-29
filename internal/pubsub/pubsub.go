@@ -37,7 +37,6 @@ func (ps *Pubsub) Publish(topic string, msg models.KickConfig) {
 	}
 	fmt.Println("Try publish message to channel ")
 	for _, ch := range ps.subs[topic] {
-		fmt.Println("In cycle")
 		go func(ch chan models.KickConfig) {
 			fmt.Println("Sending message to channel ")
 			ch <- msg

@@ -19,14 +19,25 @@ type ServerGeo struct {
 
 var decoder  = schema.NewDecoder()
 
-func (s *ServerGeo) StartPage(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, "Hello!\n")
-	fmt.Fprintf(w, "Your query should be like: \n .../kick?companyName='blabla'&kickName='blabla'&longitude=10.0&latitude=10.0&speed=100.0&status='BUSY'\n")
+func (s ServerGeo) New() (*ServerGeo, error){
+	s.Ps = pubsub.Pubsub{}.New()
+	return &s, nil
 }
 
-func (s *ServerGeo) Hello(w http.ResponseWriter, req *http.Request) {
+func StartPage(w http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(w, "Hello!\n")
+	_, err := fmt.Fprintf(w, "Your query should be like: \n .../kick?companyName='blabla'&kickName='blabla'&longitude=10.0&latitude=10.0&speed=100.0&status='BUSY'\n")
+	if err!=nil{
+		fmt.Fprintf(w, err.Error())
+	}
 
-	fmt.Fprintf(w, "hello\n")
+}
+
+func Hello(w http.ResponseWriter, req *http.Request) {
+	_, err := fmt.Fprintf(w, "hello")
+	if err!=nil{
+		fmt.Fprintf(w, err.Error())
+	}
 }
 
 func  (s *ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
@@ -45,7 +56,6 @@ func  (s *ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println("pubbub is ",s.Ps)
 	go s.Ps.Publish("kick", kick)
-
 	stErr := fmt.Sprintf("Error %s", err)
 	if err!=nil{
 		fmt.Fprintf(w, stErr)
@@ -53,25 +63,26 @@ func  (s *ServerGeo) Kick(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "Your kick is pushed!\n")
 }
 
-func (s *ServerGeo) InitDBConnection() *ServerGeo {
-	s.Driver = db.New(s.Ps)
-	return s
+func (s *ServerGeo) InitDBConnection() (*ServerGeo, error) {
+	var err error
+	s.Driver, err = db.New(s.Ps)
+	return s, err
 }
 
 
-func (s *ServerGeo) CloseDBConnection() *ServerGeo {
-	s.Driver.Close()
-	return s
+func (s *ServerGeo) CloseDBConnection() (*ServerGeo, error) {
+	err := s.Driver.Close()
+	return s, err
 }
 
 
 
-func (s *ServerGeo) StartServer()  {
-	http.HandleFunc("/", s.StartPage)
-	http.HandleFunc("/hello", s.Hello)
+func (s *ServerGeo) StartServer() error {
+	http.HandleFunc("/", StartPage)
+	http.HandleFunc("/hello", Hello)
 	http.HandleFunc("/kick", s.Kick)
 	if err := http.ListenAndServe(":8090", nil); err!=nil {
-		fmt.Print("Error server ",err)
-		return
+		return err
 	}
+	return nil
 }

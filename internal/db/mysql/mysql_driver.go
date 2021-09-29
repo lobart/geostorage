@@ -11,7 +11,7 @@ type MySqlDriver struct {
 	db  *sql.DB
 }
 
-func (d *MySqlDriver) Connect() {
+func (d *MySqlDriver) Connect() error {
 	mysqlInfo := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s",
 		d.Cfg.Database.Username, d.Cfg.Database.Password, d.Cfg.Server.Host, d.Cfg.Server.Port , d.Cfg.Database.DBName)
 	var err error
@@ -20,12 +20,17 @@ func (d *MySqlDriver) Connect() {
 
 	// if there is an error opening the connection, handle it
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
+	return nil
 }
 
-func (d *MySqlDriver) Close() {
-	d.db.Close()
+func (d *MySqlDriver) Close() error{
+	err:= d.db.Close()
+	if err!=nil{
+		return err
+	}
+	return nil
 }
 
 func (d *MySqlDriver) Push(kick *models.KickConfig) error{

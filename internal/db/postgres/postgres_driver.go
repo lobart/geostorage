@@ -11,19 +11,24 @@ type PostgreSqlDriver struct {
 	db  *sql.DB
 }
 
-func (d *PostgreSqlDriver) Connect() {
+func (d *PostgreSqlDriver) Connect() error{
 	var err error
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		d.Cfg.Server.Host, d.Cfg.Server.Port, d.Cfg.Database.Username, d.Cfg.Database.Password, d.Cfg.Database.DBName)
 	d.db, err = sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	return nil
 }
 
-func (d *PostgreSqlDriver) Close() {
-	d.db.Close()
+func (d *PostgreSqlDriver) Close() error{
+	err:=d.db.Close()
+	if err!=nil{
+		return err
+	}
+	return nil
 }
 
 

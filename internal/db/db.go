@@ -12,8 +12,8 @@ import (
 )
 
 type ( DriverDB interface {
-		Connect()
-		Close()
+		Connect() error
+		Close() error
 		Push(kick *models.KickConfig) error
 	}
 )
@@ -27,10 +27,10 @@ func listen(ps *pubsub.Pubsub, f func(k *models.KickConfig) error){
 
 }
 
-func New(ps *pubsub.Pubsub) DriverDB {
-	f, err := os.Open("config/config_db.yml")
+func New(ps *pubsub.Pubsub) (DriverDB, error) {
+	f, err := os.Open("/home/archi/Golang_example/geostorage/config/config_db.yml")
 	if err != nil {
-		fmt.Print("Error ", err)
+		return nil, err
 	}
 	defer f.Close()
 
@@ -38,7 +38,7 @@ func New(ps *pubsub.Pubsub) DriverDB {
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&cfg)
 	if err != nil {
-		fmt.Print("Error ", err)
+		return nil, err
 	} else {
 		fmt.Print(cfg.Database.Type)
 	}
@@ -47,19 +47,29 @@ func New(ps *pubsub.Pubsub) DriverDB {
 	switch cfg.Database.Type{
 	case "PostgreSQL":
 		db:= postgres.PostgreSqlDriver{Cfg: &cfg}
-		db.Connect()
+		err = db.Connect()
+		if err != nil {
+			return nil, err
+		}
 		go listen(ps, db.Push)
-		return &db
+		return &db, nil
 	case "MySQL":
 		db := mysql.MySqlDriver{Cfg: &cfg}
-		db.Connect()
+		err =  db.Connect()
+		if err != nil {
+			return nil, err
+		}
 		go listen(ps, db.Push)
-		return &db
+		return &db, nil
 	case "MongoDB":
 		db:= mongo.MongoDriver{Cfg: &cfg}
-		db.Connect()
+		err =  db.Connect()
+		if err != nil {
+			return nil, err
+		}
 		go listen(ps, db.Push)
-		return &db
+		return &db, nil
+	default:
+		return nil, nil
 	}
-	return nil
 }
