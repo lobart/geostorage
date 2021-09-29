@@ -14,13 +14,17 @@ import (
 
 type ServerGeo struct {
 	Driver db.DriverDB
-	Ps *pubsub.Pubsub
+	Ps *pubsub.Pubs
 }
 
 var decoder  = schema.NewDecoder()
 
 func (s ServerGeo) New() (*ServerGeo, error){
-	s.Ps = pubsub.Pubsub{}.New()
+	var err error
+	s.Ps, err = pubsub.Pubs{}.New()
+	if err!=nil{
+		return &s, err
+	}
 	return &s, nil
 }
 
